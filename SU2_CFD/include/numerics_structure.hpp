@@ -2058,7 +2058,9 @@ public:
  * \version 3.2.9 "eagle"
  */
 class CUpwAUSM_Flow : public CNumerics {
+
 private:
+
 	bool implicit;
 	double *Diff_U;
 	double *Velocity_i, *Velocity_j, *RoeVelocity;
@@ -2070,7 +2072,13 @@ private:
 	Density_j, Energy_j, SoundSpeed_j, Pressure_j, Enthalpy_j, R, RoeDensity, RoeEnthalpy, RoeSoundSpeed,
 	ProjVelocity, ProjVelocity_i, ProjVelocity_j, proj_delta_vel, delta_p, delta_rho;
 	unsigned short iDim, iVar, jVar, kVar;
-  double mL, mR, mLP, mRM, mF, pLP, pRM, pF, Phi;
+	double mL, mR, mLP, mRM, mF, pLP, pRM, pF, Phi;
+
+	// new added
+	double dmFdmL, dmFdmR, dpFdmL, dpFdmR, aF;
+	double *dmLdi, *dmRdj, *Temp_Vector1, *Temp_Vector2;
+	double Kappa_i, Kappa_j, Chi_i, Chi_j, StaticEnergy_i, StaticEnergy_j, StaticEnthalpy_i, StaticEnthalpy_j;
+	double dcdrho_i, dcdrho_j, dcde_i, dcde_j;
 
 public:
     
