@@ -3057,7 +3057,7 @@ void CEulerSolver::Preprocessing(CGeometry *geometry, CSolver **solver_container
 
     /*--- Limiter computation ---*/
 
-    if ((limiter) && (iMesh == MESH_0)) {
+    if ((limiter) && (iMesh == MESH_0) ){
     	SetPrimitive_Limiter(geometry, config);
 //    	if (compressible && !ideal_gas) SetSecondary_Limiter(geometry, config);
     }
@@ -3383,7 +3383,7 @@ void CEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_contain
   double **Gradient_i, **Gradient_j, Project_Grad_i, Project_Grad_j, RoeVelocity[3] = {0.0,0.0,0.0}, R, sq_vel, RoeEnthalpy,
   *V_i, *V_j, *S_i, *S_j, *Limiter_i = NULL, *Limiter_j = NULL, YDistance, GradHidrosPress, sqvel, Non_Physical = 1.0;
   unsigned long iEdge, iPoint, jPoint, counter_local = 0, counter_global = 0;
-  unsigned short iDim, iVar;
+  unsigned short iDim, iVar, limiter_type;
   bool neg_density_i = false, neg_density_j = false, neg_pressure_i = false, neg_pressure_j = false, neg_sound_speed = false;
   
   
@@ -3397,6 +3397,8 @@ void CEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_contain
   bool roe_turkel       = (config->GetKind_Upwind_Flow() == TURKEL);
   bool ideal_gas        = (config->GetKind_FluidModel() == STANDARD_AIR || config->GetKind_FluidModel() == IDEAL_GAS );
   
+  limiter_type          = (config->GetKind_SlopeLimit());
+
   /*--- Loop over all the edges ---*/
   
   for (iEdge = 0; iEdge < geometry->GetnEdge(); iEdge++) {
@@ -3454,10 +3456,10 @@ void CEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_contain
       
       Gradient_i = node[iPoint]->GetGradient_Primitive();
       Gradient_j = node[jPoint]->GetGradient_Primitive();
-      if (limiter) {
-        Limiter_i = node[iPoint]->GetLimiter_Primitive();
-        Limiter_j = node[jPoint]->GetLimiter_Primitive();
-      }
+      //if (limiter) { //&& limiter_type <=3
+      //  Limiter_i = node[iPoint]->GetLimiter_Primitive();
+      //  Limiter_j = node[jPoint]->GetLimiter_Primitive();
+      //}
       
       for (iVar = 0; iVar < nPrimVarGrad; iVar++) {
         Project_Grad_i = 0.0; Project_Grad_j = 0.0;
@@ -3467,8 +3469,20 @@ void CEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_contain
           Project_Grad_j += Vector_j[iDim]*Gradient_j[iVar][iDim]*Non_Physical;
         }
         if (limiter) {
-          Primitive_i[iVar] = V_i[iVar] + Limiter_i[iVar]*Project_Grad_i;
-          Primitive_j[iVar] = V_j[iVar] + Limiter_j[iVar]*Project_Grad_j;
+           	if (limiter_type == MINMOD) {
+            	// MINMOD LIMITER for edges
+            	Primitive_i[iVar] = V_i[iVar] + 0.25*( fabs(Project_Grad_i)/(Project_Grad_i) + fabs(V_j[iVar]-V_i[iVar])/(V_j[iVar]-V_i[iVar])) * min(fabs(2*Project_Grad_i), fabs(V_j[iVar]-V_i[iVar]));
+            	Primitive_j[iVar] = V_j[iVar] - 0.25*(-fabs(Project_Grad_j)/(Project_Grad_j) + fabs(V_j[iVar]-V_i[iVar])/(V_j[iVar]-V_i[iVar])) * min(fabs(2*Project_Grad_j), fabs(V_j[iVar]-V_i[iVar]));
+            } else if (limiter_type == VAN_ALBADA) {
+            	// VAN_ALBADA LIMITER
+    		    Primitive_i[iVar] = V_i[iVar] + Project_Grad_i*(V_j[iVar]-V_i[iVar])*(2*Project_Grad_i + V_j[iVar]-V_i[iVar])/(4*Project_Grad_i*Project_Grad_i+(V_j[iVar]-V_i[iVar])*(V_j[iVar]-V_i[iVar])+1e-11);
+    		    Primitive_j[iVar] = V_j[iVar] + Project_Grad_j*(V_j[iVar]-V_i[iVar])*(-2*Project_Grad_j + V_j[iVar]-V_i[iVar])/(4*Project_Grad_j*Project_Grad_j+(V_j[iVar]-V_i[iVar])*(V_j[iVar]-V_i[iVar])+1e-11);
+            } else {
+    		    Limiter_i = node[iPoint]->GetLimiter_Primitive();
+    		    Limiter_j = node[jPoint]->GetLimiter_Primitive();
+                Primitive_i[iVar] = V_i[iVar] + Limiter_i[iVar]*Project_Grad_i;
+                Primitive_j[iVar] = V_j[iVar] + Limiter_j[iVar]*Project_Grad_j;
+            }
         }
         else {
           Primitive_i[iVar] = V_i[iVar] + Project_Grad_i;

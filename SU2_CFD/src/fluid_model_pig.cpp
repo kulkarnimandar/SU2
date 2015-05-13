@@ -63,6 +63,9 @@ void CIdealGas::SetTDState_rhoe (double rho, double e ) {
 	dTdrho_e = 0.0;
 	dTde_rho = Gamma_Minus_One/Gas_Constant;
 
+	//dcdrho_e = 0;
+	//dcde_rho = Gamma*Gamma_Minus_One/(2*sqrt(SoundSpeed2));
+
 }
 
 void CIdealGas::SetTDState_PT (double P, double T ) {

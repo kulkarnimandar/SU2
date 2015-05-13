@@ -64,6 +64,22 @@ void CVanDerWaalsGas::SetTDState_rhoe (double rho, double e ) {
 
     SoundSpeed2 = dPdrho_e + Pressure/(Density*Density)*dPde_rho;
 
+    //dPde2  = 0;
+	//dPdedrho = Gamma_Minus_One* ( (Density*b)/((1-Density*b)*(1-Density*b)) + 1/(1-Density*b) );
+	//dPdrhode = Gamma_Minus_One/(1-Density*b)/(1-Density*b);
+	//dPdrho2 = -2*a + Gamma_Minus_One*( (e+a)/(1-Density*b)/(1-Density*b) +2*b*(e+Density*a)/(1-Density*b)/(1-Density*b)/(1-Density*b) );
+
+	//dcdrho_e  = Pressure/(Density*Density) * dPdedrho;
+	//dcdrho_e += dPde_rho*(-2*Pressure/Density + dPdrho_e)/(Density*Density);
+	//dcdrho_e += dPdrho2;
+	//dcdrho_e /= 2*sqrt(SoundSpeed2);
+
+	//dcde_rho  = dPdrhode;
+	//dcde_rho += (dPde_rho*dPde_rho)/(Density*Density);
+	//dcde_rho += Pressure*dPde2/(Density*Density);
+	//dcde_rho /= 2*sqrt(SoundSpeed2);
+
+
     Zed = Pressure/(Gas_Constant*Temperature*Density);
 }
 
