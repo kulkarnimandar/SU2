@@ -3058,7 +3058,8 @@ void CEulerSolver::Preprocessing(CGeometry *geometry, CSolver **solver_container
     /*--- Limiter computation ---*/
 
     if ((limiter) && (iMesh == MESH_0) ){
-    	SetPrimitive_Limiter(geometry, config);
+    	if (config-> GetKind_SlopeLimit() != MINMOD && config-> GetKind_SlopeLimit() != VAN_ALBADA )
+    		SetPrimitive_Limiter(geometry, config);
 //    	if (compressible && !ideal_gas) SetSecondary_Limiter(geometry, config);
     }
 
@@ -3471,9 +3472,26 @@ void CEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_contain
         if (limiter) {
            	if (limiter_type == MINMOD) {
             	// MINMOD LIMITER for edges
-            	Primitive_i[iVar] = V_i[iVar] + 0.25*( fabs(Project_Grad_i)/(Project_Grad_i) + fabs(V_j[iVar]-V_i[iVar])/(V_j[iVar]-V_i[iVar])) * min(fabs(2*Project_Grad_i), fabs(V_j[iVar]-V_i[iVar]));
-            	Primitive_j[iVar] = V_j[iVar] - 0.25*(-fabs(Project_Grad_j)/(Project_Grad_j) + fabs(V_j[iVar]-V_i[iVar])/(V_j[iVar]-V_i[iVar])) * min(fabs(2*Project_Grad_j), fabs(V_j[iVar]-V_i[iVar]));
-            } else if (limiter_type == VAN_ALBADA) {
+           		if ((V_j[iVar]-V_i[iVar])*Project_Grad_i < 0 )
+           			Primitive_i[iVar] = V_i[iVar];
+           		else {
+           			if (fabs(2*Project_Grad_i) < fabs(V_j[iVar]-V_i[iVar]))
+           				Primitive_i[iVar] = V_i[iVar] + Project_Grad_i;
+           			else
+           				Primitive_i[iVar] = V_i[iVar] + 0.5*(V_j[iVar]-V_i[iVar]);
+           		}
+
+           		if ((V_i[iVar]-V_j[iVar])*Project_Grad_j < 0 )
+           			Primitive_j[iVar] = V_j[iVar] ;
+				else {
+					if (fabs(2*Project_Grad_j) < fabs(V_i[iVar]-V_j[iVar]))
+						Primitive_j[iVar] = V_j[iVar] + Project_Grad_j;
+					else
+						Primitive_j[iVar] = V_j[iVar] + 0.5*(V_i[iVar]-V_j[iVar]);
+				}
+//            	Primitive_j[iVar] = V_j[iVar] - 0.25*(-fabs(Project_Grad_j)/(Project_Grad_j) + fabs(V_j[iVar]-V_i[iVar])/(V_j[iVar]-V_i[iVar])) * min(fabs(2*Project_Grad_j), fabs(V_j[iVar]-V_i[iVar]));
+
+           	} else if (limiter_type == VAN_ALBADA) {
             	// VAN_ALBADA LIMITER
     		    Primitive_i[iVar] = V_i[iVar] + Project_Grad_i*(V_j[iVar]-V_i[iVar])*(2*Project_Grad_i + V_j[iVar]-V_i[iVar])/(4*Project_Grad_i*Project_Grad_i+(V_j[iVar]-V_i[iVar])*(V_j[iVar]-V_i[iVar])+1e-11);
     		    Primitive_j[iVar] = V_j[iVar] + Project_Grad_j*(V_j[iVar]-V_i[iVar])*(-2*Project_Grad_j + V_j[iVar]-V_i[iVar])/(4*Project_Grad_j*Project_Grad_j+(V_j[iVar]-V_i[iVar])*(V_j[iVar]-V_i[iVar])+1e-11);

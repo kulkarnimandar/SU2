@@ -1533,7 +1533,7 @@ void CConfig::SetPostprocessing(unsigned short val_software, unsigned short val_
       exit(EXIT_FAILURE);
     }
     else {
-      if (Kind_Upwind_Flow != ROE) {
+      if (Kind_Upwind_Flow != ROE && Kind_Upwind_Flow != AUSM) {
         cout << "Only ROE Upwind scheme can be used for Not Ideal Compressible Fluids" << endl;
         exit(EXIT_FAILURE);
       }

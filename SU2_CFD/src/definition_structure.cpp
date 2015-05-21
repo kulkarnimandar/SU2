@@ -795,9 +795,16 @@ void Numerics_Preprocessing(CNumerics ****numerics_container,
               break;
               
             case AUSM:
-              for (iMGlevel = 0; iMGlevel <= config->GetnMGLevels(); iMGlevel++) {
-                numerics_container[iMGlevel][FLOW_SOL][CONV_TERM] = new CUpwAUSM_Flow(nDim, nVar_Flow, config);
-                numerics_container[iMGlevel][FLOW_SOL][CONV_BOUND_TERM] = new CUpwAUSM_Flow(nDim, nVar_Flow, config);
+              if (ideal_gas) {
+            	  for (iMGlevel = 0; iMGlevel <= config->GetnMGLevels(); iMGlevel++) {
+					  numerics_container[iMGlevel][FLOW_SOL][CONV_TERM] = new CUpwAUSM_Flow(nDim, nVar_Flow, config);
+					  numerics_container[iMGlevel][FLOW_SOL][CONV_BOUND_TERM] = new CUpwAUSM_Flow(nDim, nVar_Flow, config);
+			      }
+              } else {
+            	  for (iMGlevel = 0; iMGlevel <= config->GetnMGLevels(); iMGlevel++) {
+            		  numerics_container[iMGlevel][FLOW_SOL][CONV_TERM] = new CUpwGeneralAUSM_Flow(nDim, nVar_Flow, config);
+            		  numerics_container[iMGlevel][FLOW_SOL][CONV_BOUND_TERM] = new CUpwGeneralAUSM_Flow(nDim, nVar_Flow, config);
+            	  }
               }
               break;
               

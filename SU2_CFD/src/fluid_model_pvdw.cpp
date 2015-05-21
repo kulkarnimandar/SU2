@@ -64,20 +64,23 @@ void CVanDerWaalsGas::SetTDState_rhoe (double rho, double e ) {
 
     SoundSpeed2 = dPdrho_e + Pressure/(Density*Density)*dPde_rho;
 
-    //dPde2  = 0;
-	//dPdedrho = Gamma_Minus_One* ( (Density*b)/((1-Density*b)*(1-Density*b)) + 1/(1-Density*b) );
-	//dPdrhode = Gamma_Minus_One/(1-Density*b)/(1-Density*b);
-	//dPdrho2 = -2*a + Gamma_Minus_One*( (e+a)/(1-Density*b)/(1-Density*b) +2*b*(e+Density*a)/(1-Density*b)/(1-Density*b)/(1-Density*b) );
+/*
+      	  dPde2  = 0;
+      	  dPdedrho = Gamma_Minus_One/((1-Density_i*b)*(1-Density_i*b));
+      	  dPdrhode = S_i[1]/Density_i/(1-Density_i*b);
+      	  dPdrho2 = -2*a + Gamma_Minus_One*(2*a-2*Density_i*a*b)/(1-Density_i*b)/(1-Density_i*b);
+      	  dPdrho2+= + 2*b*Gamma_Minus_One*(StaticEnergy_i+2*Density_i*a -Density_i*Density_i*a*b)/(1-Density_i*b)/(1-Density_i*b)/(1-Density_i*b);
 
-	//dcdrho_e  = Pressure/(Density*Density) * dPdedrho;
-	//dcdrho_e += dPde_rho*(-2*Pressure/Density + dPdrho_e)/(Density*Density);
-	//dcdrho_e += dPdrho2;
-	//dcdrho_e /= 2*sqrt(SoundSpeed2);
+      	  dcdrho_i  = Pressure_i/(Density_i*Density_i) * dPdedrho;
+      	  dcdrho_i += S_i[1]*(-2*Pressure_i/Density_i + S_i[0])/(Density_i*Density_i);
+      	  dcdrho_i += dPdrho2;
+      	  dcdrho_i /= 2*SoundSpeed_i;
 
-	//dcde_rho  = dPdrhode;
-	//dcde_rho += (dPde_rho*dPde_rho)/(Density*Density);
-	//dcde_rho += Pressure*dPde2/(Density*Density);
-	//dcde_rho /= 2*sqrt(SoundSpeed2);
+      	  dcde_i  = dPdrhode;
+      	  dcde_i += (S_i[1]*S_i[1])/(Density_i*Density_i);
+      	  dcde_i += Pressure_i*dPde2/(Density_i*Density_i);
+      	  dcde_i /= 2*SoundSpeed_i;
+*/
 
 
     Zed = Pressure/(Gas_Constant*Temperature*Density);
