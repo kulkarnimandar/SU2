@@ -411,6 +411,11 @@ int main(int argc, char *argv[]) {
       case DISC_ADJ_EULER: case DISC_ADJ_NAVIER_STOKES: case DISC_ADJ_RANS:
         StopCalc = integration_container[ZONE_0][ADJFLOW_SOL]->GetConvergence(); break;
     }
+
+    bool CSA = config->GetCSA();
+    if (CSA && (ExtIter == config->GetCSAiter())) {
+	StopCalc = true;
+	}
     
 		/*--- Solution output. Determine whether a solution needs to be written
 		 after the current iteration, and if so, execute the output file writing
@@ -488,6 +493,11 @@ int main(int argc, char *argv[]) {
         }
     
     /*--- If the convergence criteria has been met, terminate the simulation. ---*/
+
+	if (CSA && StopCalc) {
+		cout << "-------------------------- CSA run terminated ---------------------------" << endl;
+		break;
+	}
     
     if (StopCalc) break;
     

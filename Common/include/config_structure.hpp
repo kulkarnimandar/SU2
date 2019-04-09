@@ -450,6 +450,8 @@ private:
 	bool LowFidelitySim;  /*!< \brief Compute a low fidelity simulation. */
 	bool Restart,	/*!< \brief Restart solution (for direct, adjoint, and linearized problems).*/
 	Restart_Flow;	/*!< \brief Restart flow solution for adjoint and linearized problems. */
+	bool CSA;       /*!< \brief Continuum Sensitivity Analysis (CSA) flag. */
+	unsigned long CSAiter;  /*!< \brief ExtIter at which CSA variables will be output. */
 	unsigned short nMarker_Monitoring,	/*!< \brief Number of markers to monitor. */
 	nMarker_Designing,					/*!< \brief Number of markers for the objective function. */
 	nMarker_GeoEval,					/*!< \brief Number of markers for the objective function. */
@@ -4424,6 +4426,18 @@ public:
 	 * \return true if Adjoint
 	 */
 	bool GetContinuous_Adjoint(void);
+
+    /*!
+	 * \brief Determines if CSA flag is ON
+	 * \return true if CSA
+	 */
+	bool GetCSA(void);
+	
+	/*!
+	 * \brief ExtIter at which CSA variables are output
+	 * \return CSAiter
+	 */
+	unsigned long GetCSAiter(void);
 
     /*!
 	 * \brief Determines if problem is viscous

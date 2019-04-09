@@ -276,7 +276,8 @@ void CGeometry::SetFaces(void) {
 }
 
 void CGeometry::TestGeometry(void) {
-  
+
+/*  
   ofstream para_file;
   
   para_file.open("test_geometry.dat", ios::out);
@@ -314,6 +315,24 @@ void CGeometry::TestGeometry(void) {
       para_file << endl;
     }
   }
+  para_file.close();
+//*/
+  
+  su2double *Normal = new su2double[nDim];
+  ofstream FaceNormal_file;
+  FaceNormal_file.open("test_geometry_face_normal.dat", ios::out);
+  FaceNormal_file.precision(16);
+  FaceNormal_file << "\"iMarker\"\t\"iPoint\"\t\"x\"\t\"y\"\t\"Nx\"\t\"Ny\"" << endl; 
+  for (unsigned short iMarker =0; iMarker < nMarker; iMarker++) {
+    for (unsigned long iVertex = 0; iVertex < nVertex[iMarker]; iVertex++) {
+      vertex[iMarker][iVertex]->GetNormal(Normal);
+      FaceNormal_file << iMarker << "\t" << vertex[iMarker][iVertex]->GetNode() << "\t" << 
+	  node[vertex[iMarker][iVertex]->GetNode()]->GetCoord(0) << "\t" << 
+	  node[vertex[iMarker][iVertex]->GetNode()]->GetCoord(1) << "\t" << 
+	  Normal[0] << "\t" << Normal[1] << endl;
+    }
+  }
+  FaceNormal_file.close();
   
 }
 

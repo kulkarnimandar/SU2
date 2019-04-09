@@ -1984,3 +1984,15 @@ void CSysMatrix::ComputeResidual(const CSysVector & sol, const CSysVector & f, C
   }
   
 }
+
+void CSysMatrix::bsr_write(char* filename) {
+
+	// cout << sizeof(double) << endl;
+  FILE *fp=fopen(filename, "w");
+  fwrite(&(nPoint), sizeof(nPoint), 1, fp);
+  fwrite(&(nnz), sizeof(nnz), 1, fp);
+  fwrite(row_ptr, sizeof(row_ptr[0]), nPoint+1, fp);
+  fwrite(col_ind, sizeof(col_ind[0]), nnz, fp);
+  fwrite(matrix, sizeof(double), nnz*nVar*nVar, fp);
+  fclose (fp);
+}

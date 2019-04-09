@@ -61,6 +61,10 @@ inline void CConfig::SetKind_SU2(unsigned short val_kind_su2) { Kind_SU2 = val_k
 
 inline bool CConfig::GetContinuous_Adjoint(void) { return ContinuousAdjoint; }
 
+inline bool CConfig::GetCSA(void) { return CSA; }
+
+inline unsigned long CConfig::GetCSAiter(void) { return CSAiter; }
+
 inline bool CConfig::GetViscous(void) { return Viscous; }
 
 inline unsigned long CConfig::GetnExtIter(void) { return nExtIter; }

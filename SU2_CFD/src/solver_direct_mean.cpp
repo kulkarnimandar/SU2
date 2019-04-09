@@ -3572,6 +3572,29 @@ void CEulerSolver::Upwind_Residual(CGeometry *geometry, CSolver **solver_contain
   bool ideal_gas        = (config->GetKind_FluidModel() == STANDARD_AIR || config->GetKind_FluidModel() == IDEAL_GAS );
   bool low_mach_corr    = config->Low_Mach_Correction();
 
+  //*  
+  bool CSA              = config->GetCSA();
+  if (CSA){ 
+  unsigned long Current_Iter = config->GetExtIter();
+	if (Current_Iter==0) {
+		cout << "Outputting geometry information for CSA." << endl;
+		geometry->TestGeometry();
+	
+		cout << "Outputting Local-Global relation required for CSA." << endl;
+		ofstream Lg_file;
+		Lg_file.open("test_geometry_nodes.dat", ios::out);
+		Lg_file.precision(16);
+		Lg_file << "\"iPoint\"\t\"iGlobal\"\t\"x\"\t\"y\"" << endl;
+		unsigned long Global_Index;
+		for (unsigned long iPoint = 0; iPoint < geometry->GetGlobal_nPoint(); iPoint++) {
+			Global_Index = geometry->node[iPoint]->GetGlobalIndex(); // index in the .su2 file
+			Lg_file << iPoint << "\t" << Global_Index << "\t" << geometry->node[iPoint]->GetCoord(0) << "\t" << geometry->node[iPoint]->GetCoord(1) << endl;
+		}
+		Lg_file.close();
+	}
+  }
+  //*/
+  
   /*--- Loop over all the edges ---*/
   
   for (iEdge = 0; iEdge < geometry->GetnEdge(); iEdge++) {
@@ -4824,13 +4847,27 @@ void CEulerSolver::ImplicitEuler_Iteration(CGeometry *geometry, CSolver **solver
   bool adjoint = config->GetContinuous_Adjoint();
   bool roe_turkel = config->GetKind_Upwind_Flow() == TURKEL;
   
+  bool CSA = config->GetCSA();
+  
   /*--- Set maximum residual to zero ---*/
   
   for (iVar = 0; iVar < nVar; iVar++) {
     SetRes_RMS(iVar, 0.0);
     SetRes_Max(iVar, 0.0, 0);
   }
-  
+ 
+//*
+  //  Output the Jacobian without the time term.
+  if (CSA) {
+	  unsigned long Current_Iter = config->GetExtIter();
+	  if (Current_Iter == config->GetCSAiter()) {
+	  	  cout << "Outputting Jacobian Matrix without time" << endl;
+	      char JacobianFileName[] = "jacobian.dat";
+	      Jacobian.bsr_write(JacobianFileName);	
+	    }
+    }
+//*/
+ 
   /*--- Build implicit system ---*/
   
   for (iPoint = 0; iPoint < nPointDomain; iPoint++) {
@@ -4907,6 +4944,62 @@ void CEulerSolver::ImplicitEuler_Iteration(CGeometry *geometry, CSolver **solver
       }
     }
   }
+
+//*
+  if (CSA) {
+
+	  unsigned long Current_Iter = config->GetExtIter();
+	  // cout << "Current iteration is #" <<Current_Iter<< endl;
+	  
+	  if (Current_Iter == config->GetCSAiter()) {
+	  
+	  //
+	  //cout << "Modifying Residual vector for debugging" << endl;
+	  //for (iPoint = 0; iPoint < nPoint; iPoint++) {
+	  //	for (iVar = 0; iVar < nVar; iVar++) {
+	  //		  total_index = iPoint*nVar + iVar;
+	  //		  LinSysRes[total_index] = total_index*0.0001;
+      //  }
+      //}	  
+	  //CSysSolve system_CSA;
+	  //unsigned long IterLinSol_CSA = 0;
+      //IterLinSol_CSA = system_CSA.Solve(Jacobian, LinSysRes, LinSysSol, geometry, config); 
+	  //
+		  
+	  // CSysVector LinSysResCheck(LinSysRes);
+	  // for (iPoint = 0; iPoint < nPoint; iPoint++) {
+	  //   for (iVar = 0; iVar < nVar; iVar++) {
+		// 	  total_index = iPoint*nVar + iVar;
+	// 		  LinSysResCheck[total_index] = 0.0;
+	//	  }
+	  // } 	  
+	  // system.OutputJacobian(Jacobian, LinSysRes, LinSysSol, LinSysResCheck, geometry, config);
+	  // Jacobian.MatrixVectorProduct(LinSysSol, LinSysResCheck, geometry, config);
+	    
+	  ofstream csa_file;
+	  csa_file.open("csa_file.dat", ios::out);
+      csa_file.precision(15);
+  	  //--- Write the header line  ----
+      // csa_file << "\t\"Residual\"\t\"ResidualCheck\"\t\"Solution\"\t\"Delta\"\t\"Q_New\"\t\"Q_Old\"" << endl;  
+	  csa_file << "\t\"Residual\"\t\"Solution\"\t\"Delta\"\t\"Q_New\"\t\"Q_Old\"" << endl;  
+	  cout << "Outputting System Residual, Solution, Delta, Q_New, Q_Old at this point" << endl;
+	  for (iPoint = 0; iPoint < nPoint; iPoint++) {
+		  Vol = geometry->node[iPoint]->GetVolume();
+		  Delta = Vol / node[iPoint]->GetDelta_Time();
+		  for (iVar = 0; iVar < nVar; iVar++) {
+			  total_index = iPoint*nVar + iVar;
+			  csa_file << scientific << LinSysRes[total_index] << "\t";
+			  //csa_file << scientific << LinSysResCheck[total_index] << "\t";
+			  csa_file << scientific << LinSysSol[total_index] << "\t";
+			  csa_file << scientific << Delta << "\t";
+			  csa_file << scientific << node[iPoint]->GetSolution(iVar) << "\t";
+			  csa_file << scientific << node[iPoint]->GetSolution_Old(iVar) << endl;
+          }
+      }
+	  csa_file.close();  
+	  }
+  }
+  //*/
   
   /*--- MPI solution ---*/
   

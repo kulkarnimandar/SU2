@@ -489,6 +489,12 @@ public:
    * \param[out] res - Result of the product A*vec.
 	 */
   void ComputeResidual(const CSysVector & sol, const CSysVector & f, CSysVector & res);
+  
+  /*!
+	 * \brief Output sparse Jacobian matrix in binary format
+	 * \param[in] filename - Name of the file in which the Jacobian matrix will be output.
+  */
+  void bsr_write(char* filename);
 
 };
 
